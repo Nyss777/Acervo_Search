@@ -1,4 +1,5 @@
 import re, os
+from bs4 import BeautifulSoup
 
 def search_error_check(handle):
     error_message = "could not extract ResultSet"
@@ -40,6 +41,7 @@ def parse(txt, sort_order=False):
 
     tituloCompleto = r'\.tituloCompleto=(?:null|"(.*)";)'
     data = r'\.dataBibliografico=(?:null|"(.{0,15})";)'
+    idd = r's[\d]+\.id=(\d+);'
 
     end_of_times = []
     
@@ -53,25 +55,62 @@ def parse(txt, sort_order=False):
     handle = handle.replace("\\/", ".")
     handle = bytes(handle, 'utf-8').decode('unicode_escape')
 
+    match_id = re.findall(idd, handle)
     match_data = re.findall(data, handle)
     get_year(match_data)
     matches = re.findall(tituloCompleto,handle)
 
     for y, x in enumerate(matches):
         try:
-            end_of_times.append([x, match_data[y]])
+            end_of_times.append([x, match_data[y], match_id[y*2]])
         except:
-            end_of_times.append([x, "No_Data_Avaliable!"])
+            end_of_times.append([x, "No_Data_Avaliable!", match_id[y]])
     if len(matches) != len(match_data):
-        print(f"match len = {len(matches)}\nmatch_data len = {len(match_data)}")
+        print(f"match len = {len(matches)}\nmatch_data len = {len(match_data)}\nmatch id len = {len(match_id)}")
     end_of_times.sort(key=lambda x: x[1], reverse=sort_order)
 
     return end_of_times
 
+def parse_Registro_html(txt):
+
+    soup = BeautifulSoup(txt, 'html.parser')
+
+    # Find all table rows that have the data you care about
+    rows = soup.find_all('tr')
+
+    where_great_men_fail = []
+
+    for row in rows:
+        tds = row.find_all('td')
+        if len(tds) == 7:  # Ensure it's the structure you expect
+            data = [td.get_text(strip=True) for td in tds[1:]]
+            where_great_men_fail.append(data)
+
+    # Step 1: Find the span with the text "Autor"
+    autor_label = soup.find('span', string='Autor')
+
+    acesso_eletronico_label = soup.find('span', string='Acesso eletrônico')
+
+    if autor_label:
+        # Step 2: Find the next <div class="width-100"> after that
+        author_div = autor_label.find_next('div', class_='width-100')
+        if author_div:
+            author_name = author_div.get_text(strip=True)
+            # print("Author:", author_name)
+    
+    href_a = ""
+
+    if acesso_eletronico_label:
+        elec_div = acesso_eletronico_label.find_next('a')
+        href_a = elec_div.get('href')
+    
+    return where_great_men_fail, author_name, href_a
+
 if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.abspath(__file__)))  # Change to the directory of the script
-    with open('output.txt', 'r') as file:
+    with open('html_ufsm.txt', 'r', encoding='utf-8') as file:
         handle = file.read()
         x = parse(handle)
         for w, y in enumerate(x):
             print(y, w)
+        # x = parse_Registro_html(handle)
