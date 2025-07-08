@@ -188,15 +188,11 @@ class DetailsScreen(Screen):
 
         screen_w = Window.width
         total_min = sum(min_widths_px)
-        scroll_needed = screen_w < total_min
 
         # --- Create the single grid for both header and data ---
         grid_params = {'cols': 6, 'spacing': dp(2), 'size_hint_y': None}
-        if scroll_needed:
-            grid_params['size_hint_x'] = None
-            grid_params['width'] = total_min
-        else:
-            grid_params['size_hint_x'] = 1
+        grid_params['size_hint_x'] = None
+        grid_params['width'] = total_min
 
         results_grid = GridLayout(**grid_params)
         results_grid.bind(minimum_height=results_grid.setter('height'))
@@ -207,11 +203,8 @@ class DetailsScreen(Screen):
                 'text': text, 'bold': True, 'size_hint_y': None,
                 'height': dp(40), 'halign': 'center', 'valign': 'middle'
             }
-            if scroll_needed:
-                label_params['size_hint_x'] = None
-                label_params['width'] = min_widths_px[idx]
-            else:
-                label_params['size_hint_x'] = ratios[idx]
+            label_params['size_hint_x'] = None
+            label_params['width'] = min_widths_px[idx]
 
             header_label = Label(**label_params)
             header_label.bind(width=lambda l, w: setattr(l, 'text_size', (w, None)))
@@ -224,11 +217,8 @@ class DetailsScreen(Screen):
                     'text': str(value), 'size_hint_y': None, 'halign': 'left',
                     'valign': 'middle', 'padding': (dp(10),0)
                 }
-                if scroll_needed:
-                    cell_params['size_hint_x'] = None
-                    cell_params['width'] = min_widths_px[idx]
-                else:
-                    cell_params['size_hint_x'] = ratios[idx]
+                cell_params['size_hint_x'] = None
+                cell_params['width'] = min_widths_px[idx]
 
                 cell_label = Label(**cell_params)
                 # Enable text wrapping and dynamic height adjustment
@@ -238,7 +228,7 @@ class DetailsScreen(Screen):
 
         # --- Setup ScrollView to contain the grid ---
         self.scrollview = ScrollView(
-            do_scroll_x=scroll_needed, do_scroll_y=True,
+            do_scroll_x=True, do_scroll_y=True,
             size_hint=(1, 1), effect_cls=ScrollEffect
         )
         self.scrollview.add_widget(results_grid)
