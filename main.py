@@ -16,8 +16,6 @@ from kivy.core.clipboard import Clipboard
 from kivy.core.window import Window
 from kivy.metrics import dp
 
-
-
 # Ensure the working directory is the script’s directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -29,8 +27,11 @@ class ClickableLabel(ButtonBehavior, Label):
 
 class CopyLabel(ButtonBehavior, Label):
     def on_press(self):
-        slices = self.text.split('\n')
-        if len(slices) == 10:
+        slices = self.text.split('\n\n')
+        print(len(slices))
+        for x in slices:
+            print(x)
+        if len(slices) == 5:
             Clipboard.copy(slices[-1].split()[-1])
         else:
             Clipboard.copy(slices[0].replace("[b]Título:[/b] ", ""))
@@ -46,25 +47,27 @@ class SearchScreen(Screen):
         root = BoxLayout(orientation='vertical', padding=20, spacing=30)
 
         # Row 1: “General Search:” label + TextInput
-        row1 = BoxLayout(size_hint_y=None, height='40dp', spacing=10)
-        row1.add_widget(Label(text="General Search:", size_hint_x=None, width='120dp'))
-        self.general_input = TextInput(multiline=False)
+        row1 = BoxLayout(size_hint_y=None, height='40dp', spacing=50)
+        row1.add_widget(Label(text="Pesquisa Geral:", size_hint_x=None, width='120dp'))
+        self.general_input = TextInput(multiline=False,
+        padding=[dp(12), dp(12), 10, 0])
         row1.add_widget(self.general_input)
         root.add_widget(row1)
 
         # Row 2: “How many results?” label + TextInput
-        row2 = BoxLayout(size_hint_y=None, height='40dp', spacing=10)
-        row2.add_widget(Label(text="How many results?", size_hint_x=None, width='120dp'))
-        self.number_input = TextInput(multiline=False, input_filter='int')
+        row2 = BoxLayout(size_hint_y=None, height='40dp', spacing=50)
+        row2.add_widget(Label(text="N.° de Resultados:", size_hint_x=None, width='120dp'))
+        self.number_input = TextInput(multiline=False, input_filter='int',
+        padding=[dp(12), dp(12), 10, 0])
         row2.add_widget(self.number_input)
         root.add_widget(row2)
 
         # Row 3: “Sorting:” label + Spinner
         row3 = BoxLayout(size_hint_y=None, height='40dp', spacing=10)
-        row3.add_widget(Label(text="Sorting:", size_hint_x=None, width='120dp'))
+        row3.add_widget(Label(text="Ordenar:", size_hint_x=None, width='120dp'))
         self.sort_spinner = Spinner(
-            text="Descending",
-            values=["Descending", "Ascending"],
+            text="Decrescente",
+            values=["Decrescente", "Crescente"],
             size_hint=(None, None),
             size=('150dp', '40dp')
         )
@@ -72,7 +75,7 @@ class SearchScreen(Screen):
         root.add_widget(row3)
 
         # Row 4: Search button
-        self.search_button = Button(text="Search", size_hint_y=None, height='40dp')
+        self.search_button = Button(text="Pesquisar", size_hint_y=None, height='40dp')
         self.search_button.bind(on_release=self.on_search_button)
         root.add_widget(self.search_button)
 
@@ -97,7 +100,7 @@ class SearchScreen(Screen):
 
         # Validate query
         if not query:
-            self.show_error("Please enter a search query.")
+            self.show_error("Por favor adicione um parâmetro de pesquisa.")
             return
 
         # Validate number of results
@@ -107,21 +110,20 @@ class SearchScreen(Screen):
         N_R = int(N_R)
 
         if N_R <= 0 or N_R > 10000:
-            self.show_error(f"Number of results must be between 1 and 10,000 (you entered {N_R}).")
+            self.show_error(f"Number of results must be between 1 and 10,000.\n (You have entered {N_R})")
             return
 
         sort_order = self.sort_spinner.text
-
         # Perform the search and parse
         try:
             raw_results = search(query, N_R, sort_order)
             results = parse(raw_results, sort_order)
         except Exception as e:
-            self.show_error(f"An error occurred while searching:\n{e}")
+            self.show_error(f"Um erro aconteceu durante a pesquisa:\n{e}")
             return
 
         if not results:
-            self.show_error("No results found.")
+            self.show_error("Nenhum resultado encontrado.")
             return
 
         # Populate the scrollable grid
@@ -147,7 +149,7 @@ class SearchScreen(Screen):
             self.results_grid.add_widget(lbl_date)
 
     def show_error(self, message):
-        content = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        content = BoxLayout(orientation='vertical', padding=dp(10), spacing=dp(10))
         content.add_widget(Label(text=message))
         btn = Button(text="OK", size_hint_y=None, height='40dp')
         content.add_widget(btn)
@@ -159,7 +161,7 @@ class DetailsScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Label to show the main details (Title, Author, etc.)
-        self.label = CopyLabel(text="", halign="left", valign="top", padding=(20, 20), markup=True)
+        self.label = CopyLabel(text="", halign="left", valign="top", padding=(dp(20), dp(20)), markup=True)
         self.label.bind(size=self.label.setter("text_size"))
         
         # Back button
@@ -182,7 +184,7 @@ class DetailsScreen(Screen):
         """
         # --- Define layout properties based on screen size ---
         ratios = [0.32, 0.09, 0.21, 0.21, 0.1, 0.07]
-        min_widths_dp = [297, 48, 151, 151, 90, 63]
+        min_widths_dp = [280, 60, 155, 151, 90, 63]
         min_widths_px = [dp(x) for x in min_widths_dp]
         headers = ["Localização", "Biblioteca", "Material", "Regulamento", "Disponível", "Total"]
 
@@ -214,7 +216,7 @@ class DetailsScreen(Screen):
         for row_data in elements[0]:
             for idx, value in enumerate(row_data):
                 cell_params = {
-                    'text': str(value), 'size_hint_y': None, 'halign': 'left',
+                    'text': str(value), 'size_hint_y': None, 'halign': 'center',
                     'valign': 'middle', 'padding': (dp(10),0)
                 }
                 cell_params['size_hint_x'] = None
@@ -251,10 +253,10 @@ class DetailsScreen(Screen):
 
         # --- Update the main details label ---
         self.label.text = (
-            f"[b]Título:[/b] {title}\n"
-            f"[b]Autor:[/b] {autor}\n"
-            f"[b]Ano:[/b] {date}\n"
-            f"[b]Id:[/b] {element_id}\n"
+            f"[b]Título:[/b] {title}\n\n"
+            f"[b]Autor:[/b] {autor}\n\n"
+            f"[b]Ano:[/b] {date}\n\n"
+            f"[b]Id:[/b] {element_id}"
         )
 
         # --- Clear old table and build new one ---
@@ -264,7 +266,7 @@ class DetailsScreen(Screen):
         if elements and elements[0]:
             self._build_and_populate_table(elements)
             if href_a:
-                self.label.text += f"\n[b]Acesso Eletrônico: [/b] {href_a}"
+                self.label.text += f"\n\n[b]Acesso Eletrônico: [/b] {href_a}"
         else:
             self.label.text += "\n\nNenhum Exemplar disponível para este livro."
 

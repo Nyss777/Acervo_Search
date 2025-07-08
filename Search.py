@@ -14,7 +14,7 @@ HEADERS = {
 def search(search_word, number_results, sort_order=2, Headers=HEADERS):
     os.chdir(os.path.dirname(os.path.abspath(__file__)))  # Change to the directory of the script
 
-    if (sort_order == "Descending"):
+    if (sort_order == "Decrescente"):
         sort_order = "desc"
     else:
         sort_order = "asc"

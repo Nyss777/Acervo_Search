@@ -34,7 +34,7 @@ def parse(txt, sort_order=False):
     os.chdir(os.path.dirname(os.path.abspath(__file__)))  # Change to the directory of the script
     # print("Current working directory:", os.getcwd())
 
-    if (sort_order == "Descending"):
+    if (sort_order == "Decrescente"):
         sort_order = True
     else:
         sort_order = False
