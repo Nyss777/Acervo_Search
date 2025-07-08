@@ -243,7 +243,7 @@ class DetailsScreen(Screen):
         try:
             response = registroSearch(element_id)
             elements = parse_Registro_html(response)
-            autor = elements[1] if len(elements) > 1 else "N/A"
+            autor = elements[1] if len(elements) > 1 else ""
             href_a = elements[2] if len(elements) > 2 else None
         except Exception as e:
             self.label.text = f"[b]Error fetching details:[/b]\n{e}"
@@ -268,7 +268,7 @@ class DetailsScreen(Screen):
             if href_a:
                 self.label.text += f"\n\n[b]Acesso Eletrônico: [/b] {href_a}"
         else:
-            self.label.text += "\n\nNenhum Exemplar disponível para este livro."
+            self.label.text += "\n\n\n\n\n\n\n\nNenhum Exemplar disponível para este livro."
 
 
 class SearchApp(App):
